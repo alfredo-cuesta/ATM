@@ -221,101 +221,64 @@ class Model(object):
             return params_dict
 
         """
-        ### GPC ###
-        if self.code == "gp":
-            if params["kernel"] == "constant":
-                params["kernel"] = ConstantKernel()
-            elif params["kernel"] == "rbf":
-                params["kernel"] = RBF()
-            elif params["kernel"] == "matern":
-                params["kernel"] = Matern(nu=params["nu"])
-                del params["nu"]
-            elif params["kernel"] == "rational_quadratic":
-                params["kernel"] = RationalQuadratic(length_scale=params["length_scale"],
-                                                             alpha=params["alpha"])
-                del params["length_scale"]
-                del params["alpha"]
-            elif params["kernel"] == "exp_sine_squared":
-                params["kernel"] = ExpSineSquared(length_scale=params["length_scale"],
-                                                          periodicity=params["periodicity"])
-                del params["length_scale"]
-                del params["periodicity"]
+        # Gaussian process classifier
+        if self.code == 'gp':
+            if params['kernel'] == 'constant':
+                params['kernel'] = ConstantKernel()
+            elif params['kernel'] == 'rbf':
+                params['kernel'] = RBF()
+            elif params['kernel'] == 'matern':
+                params['kernel'] = Matern(nu=params['nu'])
+                del params['nu']
+            elif params['kernel'] == 'rational_quadratic':
+                params['kernel'] = RationalQuadratic(length_scale=params['length_scale'],
+                                                     alpha=params['alpha'])
+                del params['length_scale']
+                del params['alpha']
+            elif params['kernel'] == 'exp_sine_squared':
+                params['kernel'] = ExpSineSquared(length_scale=params['length_scale'],
+                                                  periodicity=params['periodicity'])
+                del params['length_scale']
+                del params['periodicity']
 
-        ### MLP ###
-        if self.code == "mlp":
+        # Multi-layer perceptron
+        if self.code == 'mlp':
+            sizes = []
+            for i in range(1, params['num_hidden_layers']):
+                sizes.append(params['hidden_size_layer%d' % i])
+                del params['hidden_size_layer%d' % i]
 
-            params["hidden_layer_sizes"] = []
+            # delete our fabricated key
+            del params['num_hidden_layers']
+            params['hidden_layer_sizes'] = sizes
 
+        # Deep belief network
+        if self.code == 'dbn':
             # set layer topology
-            if int(params["num_hidden_layers"]) == 1:
-                params["hidden_layer_sizes"].append(params["hidden_size_layer1"])
-                del params["hidden_size_layer1"]
-
-            elif int(params["num_hidden_layers"]) == 2:
-                params["hidden_layer_sizes"].append(params["hidden_size_layer1"])
-                params["hidden_layer_sizes"].append(params["hidden_size_layer2"])
-                del params["hidden_size_layer1"]
-                del params["hidden_size_layer2"]
-
-            elif int(params["num_hidden_layers"]) == 3:
-                params["hidden_layer_sizes"].append(params["hidden_size_layer1"])
-                params["hidden_layer_sizes"].append(params["hidden_size_layer2"])
-                params["hidden_layer_sizes"].append(params["hidden_size_layer3"])
-                del params["hidden_size_layer1"]
-                del params["hidden_size_layer2"]
-                del params["hidden_size_layer3"]
-
-            params["hidden_layer_sizes"] = [int(x) for x in
-                                                    params["hidden_layer_sizes"]]  # convert to ints
+            hidden_sizes = []
+            for i in range(1, params['num_hidden_layers']):
+                sizes.append(params['hidden_size_layer%d' % i])
+                del params['hidden_size_layer%d' % i]
 
             # delete our fabricated keys
-            del params["num_hidden_layers"]
+            params['layer_sizes'] = ([params['inlayer_size'] +
+                                     hidden_sizes +
+                                     [params['outlayer_size']])
 
-        # print "Added stuff for DBNs! %s" % params
-        ### DBN ###
-        if self.code == "dbn":
-
-            # print "Adding stuff for DBNs! %s" % params
-            params["layer_sizes"] = [params["inlayer_size"]]
-
-            # set layer topology
-            if int(params["num_hidden_layers"]) == 1:
-                params["layer_sizes"].append(params["hidden_size_layer1"])
-                del params["hidden_size_layer1"]
-
-            elif int(params["num_hidden_layers"]) == 2:
-                params["layer_sizes"].append(params["hidden_size_layer1"])
-                params["layer_sizes"].append(params["hidden_size_layer2"])
-                del params["hidden_size_layer1"]
-                del params["hidden_size_layer2"]
-
-            elif int(params["num_hidden_layers"]) == 3:
-                params["layer_sizes"].append(params["hidden_size_layer1"])
-                params["layer_sizes"].append(params["hidden_size_layer2"])
-                params["layer_sizes"].append(params["hidden_size_layer3"])
-                del params["hidden_size_layer1"]
-                del params["hidden_size_layer2"]
-                del params["hidden_size_layer3"]
-
-            params["layer_sizes"].append(params["outlayer_size"])
-            params["layer_sizes"] = [int(x) for x in params["layer_sizes"]]  # convert to ints
+            # delete our fabricated keys
+            del params['num_hidden_layers']
+            del params['inlayer_size']
+            del params['outlayer_size']
 
             # set activation function
-            if params["output_act_funct"] == "Linear":
-                params["output_act_funct"] = Linear()
-            elif params["output_act_funct"] == "Sigmoid":
-                params["output_act_funct"] = Sigmoid()
-            elif params["output_act_funct"] == "Softmax":
-                params["output_act_funct"] = Softmax()
-            elif params["output_act_funct"] == "tanh":
-                params["output_act_funct"] = Tanh()
-
-            params["epochs"] = int(params["epochs"])
-
-            # delete our fabricated keys
-            del params["num_hidden_layers"]
-            del params["inlayer_size"]
-            del params["outlayer_size"]
+            if params['output_act_funct'] == 'Linear':
+                params['output_act_funct'] = Linear()
+            elif params['output_act_funct'] == 'Sigmoid':
+                params['output_act_funct'] = Sigmoid()
+            elif params['output_act_funct'] == 'Softmax':
+                params['output_act_funct'] = Softmax()
+            elif params['output_act_funct'] == 'tanh':
+                params['output_act_funct'] = Tanh()
 
         # return the updated parameter vector
         return params

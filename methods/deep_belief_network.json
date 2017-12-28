@@ -1,6 +1,6 @@
 {   
     "name": "dbn",
-    "class": "nolearn.dbn.DBN",
+    "class": "nolearn.lasagne.NeuralNet",
     "parameters": {
         "inlayer_size": {
            "type": "int_cat",
